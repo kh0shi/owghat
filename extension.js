@@ -42,6 +42,7 @@ const Owghat = new Lang.Class({
     for(var i of this.azan_keys) {
       this.azan[i] = this._createMenuItem(_(this.azan_labels[i]));
     }
+    this.azan_moment = false;
   },
 
   _createMenuItem: function(text) {
@@ -75,30 +76,56 @@ const Owghat = new Lang.Class({
     pt.setMethod('Tehran');
     var times = pt.getTimes(date, [35.42, 51.25], 3.5);
 
-    var min_time_diff = 100000000;
+    var min_time_diff = 9999999999999;
+    var timeDiff = 0;
     var next_time = '';
-    for(var i of this.azan_keys) {
-      this.azan[i].set_text(times[i]);
+    var time = new Date();
+    while (next_time == '') {
+      for(var i of this.azan_keys) {
+        this.azan[i].set_text(times[i]);
+        var u = false;
+        
+        var hm = times[i].split(':')
+        var h = parseInt(hm[0]);
+        var m = parseInt(hm[1]);
+        time.setHours(h, m)
+        timeDiff = time.getTime() - date.getTime();
+        var f = false;
+        // global.log('owghat: ' + timeDiff);
+        
+        if (timeDiff > 0 && timeDiff < min_time_diff) {
+          min_time_diff = timeDiff;
 
-      var time = new Date(date.toLocaleDateString() + " " + times[i]);
-      var timeDiff = time.getTime() - date.getTime();
-
-      if (timeDiff > 0 && timeDiff < min_time_diff) {
-        min_time_diff = timeDiff;
-
-        var diffHrs = Math.floor((timeDiff % 86400000) / 3600000);
-        var diffMins = Math.floor(((timeDiff % 86400000) % 3600000) / 60000);
-        next_time = String(diffHrs) + ":" + (diffMins > 9 ? "" + diffMins: "0" + diffMins) + " تا " + this.azan_labels[i];
+          var diffHrs = Math.floor((timeDiff % 86400000) / 3600000);
+          var diffMins = Math.floor(((timeDiff % 86400000) % 3600000) / 60000);
+          if (diffHrs == 0 && diffMins == 0) {
+            next_time = this.azan_labels[i];
+            f = true;
+          }
+          else {
+            next_time = String(diffHrs) + ":" + (diffMins > 9 ? "" + diffMins: "0" + diffMins) + " تا " + this.azan_labels[i];
+            f = false;
+          }
+          // break;
+        }
       }
+      time.setDate(time.getDate() + 1);
     }
 
+    if (f && !this.azan_moment) {
+      Main.notify(next_time)
+      this.azan_moment = true;
+    }
+    else {
+      this.azan_moment = false;
+    }
     let txt = next_time;
     this.buttonText.set_text(txt);
     
   },
 
   _onPreferencesActivate: function() {
-    Util.spawn(["gnome-shell-extension-prefs", "forex_indicator@trifonovkv.gmail.com"]);
+    Util.spawn(["gnome-shell-extension-prefs", "mhkhoshmehr@gmail.com"]);
     return 0;
   },
 
