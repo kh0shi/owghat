@@ -80,20 +80,20 @@ const Owghat = new Lang.Class({
     var timeDiff = 0;
     var next_time = '';
     var time = new Date();
+    var f = false;
     while (next_time == '') {
       for(var i of this.azan_keys) {
         this.azan[i].set_text(times[i]);
         var u = false;
         
-        var hm = times[i].split(':')
+        var hm = times[i].split(':');
         var h = parseInt(hm[0]);
         var m = parseInt(hm[1]);
-        time.setHours(h, m)
+        time.setHours(h, m);
         timeDiff = time.getTime() - date.getTime();
-        var f = false;
         // global.log('owghat: ' + timeDiff);
         
-        if (timeDiff > 0 && timeDiff < min_time_diff) {
+        if (!f && timeDiff > 0 && timeDiff < min_time_diff) {
           min_time_diff = timeDiff;
 
           var diffHrs = Math.floor((timeDiff % 86400000) / 3600000);
@@ -116,7 +116,7 @@ const Owghat = new Lang.Class({
       Main.notify(next_time)
       this.azan_moment = true;
     }
-    else {
+    else if (!f && this.azan_moment){
       this.azan_moment = false;
     }
     let txt = next_time;
